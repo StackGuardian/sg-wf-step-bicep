@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "title": "Azure Bicep Deployment",
+  "description": "Configuration for deploying an Azure Bicep template using Azure CLI.",
+  "properties": {
+    "templateFile": {
+      "type": "string",
+      "title": "Bicep Template File", 
+      "description": "The file path to the Bicep template that defines the Azure infrastructure. This path will be appended to the workingDir defined in the VCS Config of the workflow. Example: 'main.bicep'."
+    },
+    "deploymentScope": {
+      "type": "string",
+      "title": "Deployment Scope", 
+      "description": "The scope at which to deploy the Bicep template:\n- 'Subscription': Deploy at subscription level (subscription ID retrieved from selected Cloud Connector)\n- 'Resource Group': Deploy at resource group level (resource group name must be provided via ARM_RESOURCE_GROUP environment variable in workflow settings)",
+      "enumNames": ["Subscription", "Resource Group"],
+      "enum": ["sub", "group"]
+    },
+    "deploymentMode": {
+      "type": "string",
+      "title": "Deployment Mode",
+      "description": "Specifies how resources should be deployed (required only when Deployment Scope is Resource Group):\n- 'Incremental': Only new or modified resources will be deployed.\n- 'Complete': Existing resources not in the template will be deleted.\n- 'What-if': Simulates the deployment without making changes.",
+      "enum": ["Incremental", "Complete", "What-if"]
+    },
+    "location": {
+      "type": "string",
+      "title": "Azure Region",
+      "description": "The Azure region where the deployment will be executed. This is required when deploymentScope is Subscription. Example values: 'eastus', 'westus2', 'centralus', 'northeurope', 'westeurope', 'germanywestcentral', 'germanynorth'."
+    },
+    "deploymentName": {
+      "type": "string",
+      "title": "Deployment Name",
+      "description": "An optional name for the deployment. If not provided, Azure will generate a default name."
+    },
+    "additionalParameters": {
+      "type": "string",
+      "title": "Additional Parameters",
+      "description": "Additional parameters to append to the az deployment command. For example: '--debug'"
+    }
+  },
+  "required": ["templateFile", "deploymentScope"]
+}
