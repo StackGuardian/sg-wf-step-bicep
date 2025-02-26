@@ -20,7 +20,7 @@ Once authentication is configured, StackGuardian will use these credentials to a
 
 ## Step 2: Configuration of the Bicep Workflow Step
 
-The **Bicep Workflow Step** allows users to define their Azure deployment through a user-friendly form. The following configuration options will be presented based on the JSON Schema:
+The **Bicep Workflow Step** allows users to define their Azure deployment through a user-friendly form. The following configuration options will be presented based on the JSON Schema in your StackGuardian Workflow.
 
 ### 1. **Template File (`templateFile`)**
 
@@ -72,3 +72,7 @@ The **Bicep Workflow Step** allows users to define their Azure deployment throug
 2. Consider using "Incremental" mode for production deployments unless you specifically need to enforce a complete state match.
 3. When deploying at Resource Group scope, ensure the ARM_RESOURCE_GROUP environment variable is set in workflow settings.
 4. For subscription-level deployments, make sure to specify the target Azure region.
+
+## Creating Your Own Workflow Step
+
+For detailed instructions on how to create and customize your own workflow steps in StackGuardian, please refer to our [Workflow Steps Documentation](https://docs.stackguardian.io/docs/develop/library/workflow_step/). This will guide you through the process of creating and  integrating custom workflow steps into your StackGuardian Workflows.
