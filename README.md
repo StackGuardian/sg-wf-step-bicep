@@ -76,3 +76,95 @@ The **Bicep Workflow Step** allows users to define their Azure deployment throug
 ## Creating Your Own Workflow Step
 
 For detailed instructions on how to create and customize your own workflow steps in StackGuardian, please refer to our [Workflow Steps Documentation](https://docs.stackguardian.io/docs/develop/library/workflow_step/). This will guide you through the process of creating and  integrating custom workflow steps into your StackGuardian Workflows.
+
+## Configuring a StackGuardian Workflow
+
+To create a workflow using this step, you can use the StackGuardian Workflow as Code feature. For more details on configuring workflows as code, refer to the [official documentation](https://docs.stackguardian.io/docs/deploy/workflows/create_workflow/json/#using-workflow-as-code).
+
+### Example Workflow Configuration
+
+```json
+{
+  "Approvers": [],
+  "DeploymentPlatformConfig": [
+    {
+      "config": {
+        "profileName": "Azure-Example",
+        "integrationId": "/integrations/Azure-Example"
+      },
+      "kind": "AZURE_STATIC"
+    }
+  ],
+  "WfType": "CUSTOM",
+  "EnvironmentVariables": [
+    {
+      "config": {
+        "textValue": "example-resource-group",
+        "varName": "ARM_RESOURCE_GROUP"
+      },
+      "kind": "PLAIN_TEXT"
+    }
+  ],
+  "VCSConfig": {
+    "iacVCSConfig": {
+      "useMarketplaceTemplate": false,
+      "customSource": {
+        "sourceConfigDestKind": "GITHUB_COM",
+        "config": {
+          "includeSubModule": false,
+          "ref": "main",
+          "gitCoreAutoCRLF": false,
+          "auth": "/integrations/github_com",
+          "workingDir": "",
+          "repo": "https://github.com/example/example-repo",
+          "isPrivate": true
+        }
+      }
+    },
+    "iacInputData": {
+      "schemaType": "RAW_JSON",
+      "data": {
+        "storageAccount": {
+          "value": "examplestorageaccount"
+        }
+      }
+    }
+  },
+  "Tags": [],
+  "UserJobCPU": 512,
+  "UserJobMemory": 1024,
+  "RunnerConstraints": {
+    "type": "shared"
+  },
+  "Description": "Example workflow for deploying Azure resources",
+  "ResourceName": "deploy-storage-account",
+  "WfStepsConfig": [
+    {
+      "name": "bicep",
+      "mountPoints": [],
+      "wfStepTemplateId": "/stackguardian/Bicep:3",
+      "wfStepInputData": {
+        "schemaType": "FORM_JSONSCHEMA",
+        "data": {
+          "resourceGroup": "example-resource-group",
+          "deploymentMode": "Incremental",
+          "location": "westeurope",
+          "deploymentName": "storage-deployment",
+          "templateFile": "storageaccount.bicep",
+          "deploymentScope": "group",
+          "subscriptionId": "example-subscription"
+        }
+      },
+      "approval": false,
+      "timeout": 2100
+    }
+  ]
+}
+```
+
+This JSON payload defines a workflow that deploys an Azure storage account using a Bicep template. It includes:
+- **Deployment platform configuration**: Defines the Azure Cloud Connector.
+- **VCS configuration**: Links the workflow to a GitHub repository.
+- **Workflow steps**: Configures the Bicep deployment with necessary parameters.
+
+For more advanced configurations and additional parameters, visit the [StackGuardian documentation](https://docs.stackguardian.io/docs/deploy/workflows/create_workflow/json/#using-workflow-as-code).
