@@ -212,7 +212,7 @@ main() {
   print_cmd "${cmd}"
   ${cmd}
   # Call the function to retrieve and save deployment outputs
-  retrieve_deployment_outputs "${resourceGroup}" "${deploymentName}" "${mountedArtifactsDir}"
+  retrieve_deployment_outputs "${resourceGroup}" "${deploymentName}" "${mountedArtifactsDir}" "${deploymentScope}"
 }
 
 main "$@"
