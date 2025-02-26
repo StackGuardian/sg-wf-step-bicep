@@ -82,7 +82,7 @@ build_az_command() {
 
   # If input variables exist, process and add them to the command
   if [[ -n "${workflowIACInputVariables}" ]]; then
-    echo "${workflowIACInputVariables}" | jq '. | {"parameters": .}' >"${output_file}"
+    echo "${workflowIACInputVariables}" | jq 'to_entries | reduce .[] as $item ({}; . + {($item.key): {"value": $item.value}})' >"${output_file}"
     base_cmd="${base_cmd} --parameters @${output_file}"
   fi
 
