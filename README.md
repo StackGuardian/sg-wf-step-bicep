@@ -124,9 +124,7 @@ To create a workflow using this step, you can use the StackGuardian Workflow as 
     "iacInputData": {
       "schemaType": "RAW_JSON",
       "data": {
-        "storageAccount": {
-          "value": "examplestorageaccount"
-        }
+        "storageAccount": "examplestorageaccount"
       }
     }
   },
