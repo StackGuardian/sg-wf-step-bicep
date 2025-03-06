@@ -211,6 +211,8 @@ main() {
   # Print and execute the command
   print_cmd "${cmd}"
   ${cmd}
+  #TODO: Check if the deployment was successful or if there was an error, get the error message and exit with an error code
+  # Example: ERROR: {"status":"Failed","error":{"code":"DeploymentFailed","target":"/subscriptions/43434343-343434-344343-3434-34343344/resourceGroups/rg-stack-1/providers/Microsoft.Resources/deployments/SG-KeyVault","message":"At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details.","details":[{"code":"ResourceDeploymentFailure","target":"/subscriptions/xxxx-xxx-xxx-xxx-xxxx/resourceGroups/rg-stack-dev-01/providers/Microsoft.Resources/deployments/Deploy-KeyVault-stack-dev-we-001","message":"The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'.","details":[{"code":"DeploymentFailed","target":"/subscriptions/xxxx-xxxx-xxxx-xxxx-xxxxxx/resourceGroups/rg-stack-infra-dev-01/providers/Microsoft.Resources/deployments/Deploy-KeyVault","message":"At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-deployment-operations for usage details.","details":[{"code":"ConflictError","message":"A vault with the same name already exists in deleted state. You need to either recover or purge existing key vault. Follow this link https://go.microsoft.com/fwlink/?linkid=2149745 for more information on soft delete."}]}]}]}}
   # Call the function to retrieve and save deployment outputs
   retrieve_deployment_outputs "${resourceGroup}" "${deploymentName}" "${mountedArtifactsDir}" "${deploymentScope}"
 }
