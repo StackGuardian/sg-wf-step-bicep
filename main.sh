@@ -120,33 +120,53 @@ process_json_part() {
 
 # Function to retrieve deployment outputs
 retrieve_deployment_outputs() {
-  local resourceGroup=$1
-  local deploymentName=$2
-  local mountedArtifactsDir=$3
-  local deploymentScope=$4
+  local resourceGroup="$1"
+  local deploymentName="$2"
+  local mountedArtifactsDir="$3"
+  local deploymentScope="$4"
   local outputsFile="${mountedArtifactsDir}/sg.outputs.json"
 
   # Get deployment outputs and store them in sg.outputs.json
   debug "Retrieving deployment outputs"
+
+  local outputs=""
+  local resources=""
+
   if [[ "${deploymentScope}" == "sub" ]]; then
     outputs=$(az deployment sub show --name "$deploymentName" --query 'properties.outputs' -o json)
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get sub deployment outputs. Check for a valid deployment name in the Workflow Step inputs: '$deploymentName'"
+    fi
     resources=$(az deployment sub show --name "$deploymentName" --query 'properties.outputResources' -o json)
-  fi
-  if [[ "${deploymentScope}" == "group" ]]; then
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get sub deployment resources. Check for a valid deployment name in the Workflow Step inputs: '$deploymentName'"
+    fi
+  elif [[ "${deploymentScope}" == "group" ]]; then
     outputs=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties.outputs' -o json)
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get group deployment outputs. Check for a valid deployment name: '$deploymentName' and resource group: '$resourceGroup' in the Workflow Step inputs"
+    fi
     resources=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties.outputResources' -o json)
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get group deployment resources. Check for a valid deployment name: '$deploymentName' and resource group: '$resourceGroup' in the Workflow Step inputs"
+    fi
+  else
+    err "Invalid Deployment Scope in the Workflow Step inputs: '$deploymentScope'. Scope must be either 'sub' or 'group'."
   fi
 
   # Store the modified output in the outputs file
   echo $outputs
   echo "$outputs" >"$outputsFile"
+  if [[ $? -ne 0 ]]; then
+    err "Failed to write to '$outputsFile'."
+  fi
   debug "Successfully stored deployment outputs in ${outputsFile}"
 
   # Get deployment resources and store them in sg.workflow_run_facts.json under BicepResources
   process_json_part "$resources" "BicepResources"
 
   # # Get deployment properties and store them in sg.workflow_run_facts.json under BicepProperties
-  # TODO: Review 
+  # TODO: Review
   # properties=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties' -o json)
   # process_json_part "$properties" "BicepProperties"
 }
