@@ -140,13 +140,18 @@ retrieve_deployment_outputs() {
   # Store the modified output in the outputs file
   echo $outputs
   echo "$outputs" >"$outputsFile"
+
+  if [[ $? -ne 0 ]]; then
+    debug "Failed to store outputs to '$outputsFile'."
+  fi
+
   debug "Successfully stored deployment outputs in ${outputsFile}"
 
   # Get deployment resources and store them in sg.workflow_run_facts.json under BicepResources
   process_json_part "$resources" "BicepResources"
 
   # # Get deployment properties and store them in sg.workflow_run_facts.json under BicepProperties
-  # TODO: Review 
+  # TODO: Review
   # properties=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties' -o json)
   # process_json_part "$properties" "BicepProperties"
 }
@@ -157,7 +162,6 @@ main() {
   parse_variables
 
   # Extract parameters from input JSON
-  templateFile=$(echo "${workflowStepInputParams}" | jq -r '.templateFile')
   deploymentScope=$(echo "${workflowStepInputParams}" | jq -r '.deploymentScope')
   resourceGroup=${ARM_RESOURCE_GROUP}
   subscriptionId=${ARM_SUBSCRIPTION_ID}
@@ -167,7 +171,6 @@ main() {
   additionalParameters=$(echo "${workflowStepInputParams}" | jq -r '.additionalParameters')
 
   # Validate required parameters
-  [[ -z "${templateFile}" ]] && err "Template file is not passed in the Workflow Step inputs."
   [[ -z "${resourceGroup}" ]] && [[ "${deploymentScope}" == "group" ]] && err "ARM_RESOURCE_GROUP is not passed as an environment variable in the Workflow Settings."
   [[ -z "${subscriptionId}" ]] && err "Subscription ID from the Cloud Connector cannot be read. Please make sure that the Cloud Connector is correctly passed."
 
@@ -190,9 +193,9 @@ main() {
   if [[ "${deploymentMode}" == "What-if" ]]; then
     info "Previewing deployment with what-if"
     if [[ "${deploymentScope}" == "sub" ]]; then
-      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${workingDir}/${templateFile}"
+      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${workingDir}"
     else
-      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${workingDir}/${templateFile}"
+      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${workingDir}"
     fi
     whatIfcmd=$(build_az_command "${whatIfCmdBase}")
     print_cmd "${whatIfcmd}"
@@ -203,9 +206,9 @@ main() {
   # Execute the deployment
   info "Starting deployment"
   if [[ "${deploymentScope}" == "sub" ]]; then
-    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${workingDir}/${templateFile}"
+    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${workingDir}"
   else
-    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${workingDir}/${templateFile} --mode ${deploymentMode}"
+    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${workingDir} --mode ${deploymentMode}"
   fi
   cmd=$(build_az_command "${deployCmdBase}")
   # Print and execute the command
