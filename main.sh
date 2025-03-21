@@ -36,6 +36,7 @@ print_cmd() {
 }
 
 parse_variables() {
+  # templateFile refers to the Azure Bicep template file
   templateFile="${LOCAL_IAC_SOURCE_CODE_DIR%/}"
   workflowStepInputParams=$(echo "${BASE64_WORKFLOW_STEP_INPUT_VARIABLES}" | base64 -d -i -)
   mountedArtifactsDir="${LOCAL_ARTIFACTS_DIR}"
@@ -171,6 +172,7 @@ main() {
   additionalParameters=$(echo "${workflowStepInputParams}" | jq -r '.additionalParameters')
 
   # Validate required parameters
+  [[ ! -f "${templateFile}" ]] && err "Template file '${templateFile}' does not exist or is not a valid file."
   [[ -z "${resourceGroup}" ]] && [[ "${deploymentScope}" == "group" ]] && err "ARM_RESOURCE_GROUP is not passed as an environment variable in the Workflow Settings."
   [[ -z "${subscriptionId}" ]] && err "Subscription ID from the Cloud Connector cannot be read. Please make sure that the Cloud Connector is correctly passed."
 
