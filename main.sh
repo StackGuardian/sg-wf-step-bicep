@@ -36,7 +36,7 @@ print_cmd() {
 }
 
 parse_variables() {
-  workingDir="${LOCAL_IAC_SOURCE_CODE_DIR}"
+  templateFile="${LOCAL_IAC_SOURCE_CODE_DIR%/}"
   workflowStepInputParams=$(echo "${BASE64_WORKFLOW_STEP_INPUT_VARIABLES}" | base64 -d -i -)
   mountedArtifactsDir="${LOCAL_ARTIFACTS_DIR}"
   # BASE64_IAC_INPUT_VARIABLES
@@ -143,9 +143,9 @@ retrieve_deployment_outputs() {
 
   if [[ $? -ne 0 ]]; then
     debug "Failed to store outputs to '$outputsFile'."
+  else
+    debug "Successfully stored deployment outputs in '${outputsFile}'."
   fi
-
-  debug "Successfully stored deployment outputs in ${outputsFile}"
 
   # Get deployment resources and store them in sg.workflow_run_facts.json under BicepResources
   process_json_part "$resources" "BicepResources"
@@ -193,9 +193,9 @@ main() {
   if [[ "${deploymentMode}" == "What-if" ]]; then
     info "Previewing deployment with what-if"
     if [[ "${deploymentScope}" == "sub" ]]; then
-      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${workingDir}"
+      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${templateFile}"
     else
-      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${workingDir}"
+      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${templateFile}"
     fi
     whatIfcmd=$(build_az_command "${whatIfCmdBase}")
     print_cmd "${whatIfcmd}"
@@ -206,9 +206,9 @@ main() {
   # Execute the deployment
   info "Starting deployment"
   if [[ "${deploymentScope}" == "sub" ]]; then
-    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${workingDir}"
+    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${templateFile}"
   else
-    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${workingDir} --mode ${deploymentMode}"
+    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${templateFile} --mode ${deploymentMode}"
   fi
   cmd=$(build_az_command "${deployCmdBase}")
   # Print and execute the command
