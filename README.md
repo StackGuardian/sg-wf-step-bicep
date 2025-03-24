@@ -24,10 +24,7 @@ The **Bicep Workflow Step** allows users to define their Azure deployment throug
 
 ### 1. **Template File (`templateFile`)**
 
-   - **Description**: Deprecated and will be permanently removed! Use 'Working Directory' in the Git repository settings instead.
-   - **Type**: String
-   - **Required**: Yes
-   - **Example**: `"main.bicep"`
+   - **Description**: Bicep Template File field is deprecated and will be permanently removed! Please specify the Bicep file path in the 'Working Directory' configuration of the template or Git Repository instead.
 
 ### 2. **Deployment Scope (`deploymentScope`)**
 
