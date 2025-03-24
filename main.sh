@@ -172,7 +172,11 @@ main() {
   additionalParameters=$(echo "${workflowStepInputParams}" | jq -r '.additionalParameters')
 
   # Validate required parameters
-  [[ ! -f "${templateFile}" ]] && err "Bicep file '${templateFile}' does not exist or is not a valid file."
+  if [[ -d "${templateFile}" ]]; then
+    err "The specified template path '${templateFile}' is a directory. Please specify the Bicep file within the Working Directory configuration of the template or Git Repository as the support for the Template File parameter is removed. This might have worked with an older version of the Bicep workflow step template."
+  elif [[ ! -f "${templateFile}" ]]; then
+    err "Bicep file '${templateFile}' does not exist or is not a valid file."
+  fi
   [[ -z "${resourceGroup}" ]] && [[ "${deploymentScope}" == "group" ]] && err "ARM_RESOURCE_GROUP is not passed as an environment variable in the Workflow Settings."
   [[ -z "${subscriptionId}" ]] && err "Subscription ID from the Cloud Connector cannot be read. Please make sure that the Cloud Connector is correctly passed."
 
