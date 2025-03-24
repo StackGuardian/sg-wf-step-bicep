@@ -6,7 +6,7 @@
     "templateFile": {
       "type": "string",
       "title": "Bicep Template File",
-      "description": "Deprecated and will be permanently removed! Use 'Working Directory' in the Git repository settings instead.",
+      "description": "Deprecated and will be permanently removed! Specify the Bicep file path in the 'Working Directory' configuration of the template or Git Repository instead.",
       "readOnly": true
     },
     "deploymentScope": {
