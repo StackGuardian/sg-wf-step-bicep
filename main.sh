@@ -99,23 +99,26 @@ build_az_command() {
 process_json_part() {
   local jsonOutput="$1"
   local jsonKey="$2"
+  local filePath="${mountedArtifactsDir}/sg.workflow_run_facts.json"
 
-  # Find the first JSON parentheses in the Bicep or other output and copy from there to the end
-  local jsonPart=$(echo "$jsonOutput" | sed -n -e '/^{/,$p')
+  # Validate JSON output
+  if [[ -z "$jsonOutput" || "$jsonOutput" == "[]" ]] || ! jq -e . <<<"$jsonOutput" >/dev/null 2>&1; then
+    debug "Skipping update: No valid JSON data for '${jsonKey}'."
+    return
+  fi
 
-  # Check if the extracted part is valid JSON and not empty
-  if [[ -n "$jsonPart" && $(
-    jq '.' <<<"$jsonPart" >/dev/null 2>&1
-    echo $?
-  ) -eq 0 ]]; then
-    # If valid, wrap it in a JSON object and merge with existing data
-    echo "$jsonPart" | jq --argjson existingData "$(cat "${mountedArtifactsDir}/sg.workflow_run_facts.json" 2>/dev/null || echo "{}")" \
-      ". + { \"$jsonKey\": $jsonPart }" >"${mountedArtifactsDir}/sg.workflow_run_facts.json"
+  # Ensure the JSON file exists and is valid; otherwise, initialize as '{}'
+  if [ ! -f "$filePath" ] || [ ! -s "$filePath" ] || ! jq -e . "$filePath" >/dev/null 2>&1; then
+    echo "{}" >"$filePath"
+  fi
 
-    debug "Extracted JSON part from deployment output and stored in ${jsonKey}"
+  # Update JSON file with new key-value pair
+  if jq --arg key "$jsonKey" --argjson newValue "$jsonOutput" '.[$key] = $newValue' "$filePath" >"${filePath}.tmp"; then
+    mv "${filePath}.tmp" "$filePath"
+    echo "Successfully stored JSON under '${jsonKey}' in sg.workflow_run_facts.json"
   else
-    # Handle the case where the extracted part is empty or not valid JSON
-    debug "Extracted JSON part from deployment output is not valid JSON or is empty."
+    debug "Error: Failed to update JSON file."
+    rm -f "${filePath}.tmp"
   fi
 }
 
@@ -127,15 +130,55 @@ retrieve_deployment_outputs() {
   local deploymentScope=$4
   local outputsFile="${mountedArtifactsDir}/sg.outputs.json"
 
+  # Initialize JSON array
+  resources='[]'
+
   # Get deployment outputs and store them in sg.outputs.json
   debug "Retrieving deployment outputs"
   if [[ "${deploymentScope}" == "sub" ]]; then
     outputs=$(az deployment sub show --name "$deploymentName" --query 'properties.outputs' -o json)
-    resources=$(az deployment sub show --name "$deploymentName" --query 'properties.outputResources' -o json)
+    resourceIds=$(az deployment sub show \
+      --name "$deploymentName" \
+      --query 'properties.outputResources[].id' \
+      -o tsv)
+
+    # Ensure resourceIds is not empty
+    if [[ -z "$resourceIds" ]]; then
+      debug "No resources found in deployment $deploymentName."
+    else
+      # Process each resource ID
+      while IFS= read -r resourceId; do
+        # Get resource details and create JSON object
+        resource_data=$(az resource show --ids "$resourceId" \
+          --query "{id: id, properties: properties}" -o json)
+
+        # Add to array using jq
+        resources=$(jq --argjson data "$resource_data" '. += [$data]' <<<"$resources")
+      done <<<"$resourceIds"
+    fi
   fi
   if [[ "${deploymentScope}" == "group" ]]; then
     outputs=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties.outputs' -o json)
-    resources=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties.outputResources' -o json)
+    resourceIds=$(az deployment group show \
+      --resource-group "$resourceGroup" \
+      --name "$deploymentName" \
+      --query 'properties.outputResources[].id' \
+      -o tsv)
+
+    # Ensure resourceIds is not empty
+    if [[ -z "$resourceIds" ]]; then
+      debug "No resources found in deployment $deploymentName."
+    else
+      # Process each resource ID
+      while IFS= read -r resourceId; do
+        # Get resource details and create JSON object
+        resource_data=$(az resource show --ids "$resourceId" \
+          --query "{id: id, properties: properties}" -o json)
+
+        # Add to array using jq
+        resources=$(jq --argjson data "$resource_data" '. += [$data]' <<<"$resources")
+      done <<<"$resourceIds"
+    fi
   fi
 
   # Store the modified output in the outputs file
@@ -149,7 +192,14 @@ retrieve_deployment_outputs() {
   fi
 
   # Get deployment resources and store them in sg.workflow_run_facts.json under BicepResources
-  process_json_part "$resources" "BicepResources"
+  if [[ -n "$resources" && "$resources" != "[]" && $(
+    jq empty <<<"$resources" 2>/dev/null
+    echo $?
+  ) -eq 0 ]]; then
+    process_json_part "$resources" "BicepResources"
+  else
+    debug "No valid resources to process for BicepResources."
+  fi
 
   # # Get deployment properties and store them in sg.workflow_run_facts.json under BicepProperties
   # TODO: Review
