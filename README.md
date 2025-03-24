@@ -115,8 +115,8 @@ To create a workflow using this step, you can use the StackGuardian Workflow as 
           "ref": "main",
           "gitCoreAutoCRLF": false,
           "auth": "/integrations/github_com",
-          "workingDir": "",
-          "repo": "https://github.com/example/example-repo",
+          "workingDir": "main.bicep",
+          "repo": "https://github.com/example/storageaccount",
           "isPrivate": true
         }
       }
@@ -148,7 +148,6 @@ To create a workflow using this step, you can use the StackGuardian Workflow as 
           "deploymentMode": "Incremental",
           "location": "westeurope",
           "deploymentName": "storage-deployment",
-          "templateFile": "storageaccount.bicep",
           "deploymentScope": "group",
           "subscriptionId": "example-subscription"
         }
