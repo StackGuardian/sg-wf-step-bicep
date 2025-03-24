@@ -24,7 +24,7 @@ The **Bicep Workflow Step** allows users to define their Azure deployment throug
 
 ### 1. **Template File (`templateFile`)**
 
-   - **Description**: The file path to the Bicep template that defines the Azure infrastructure. This path will be appended to the workingDir defined in the VCS Config of the workflow.
+   - **Description**: Deprecated and will be permanently removed! Use 'Working Directory' in the Git repository settings instead.
    - **Type**: String
    - **Required**: Yes
    - **Example**: `"main.bicep"`

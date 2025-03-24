@@ -6,12 +6,13 @@
     "templateFile": {
       "type": "string",
       "title": "Bicep Template File", 
-      "description": "The file path to the Bicep template that defines the Azure infrastructure. This path will be appended to the workingDir defined in the VCS Config of the workflow. Example: 'main.bicep'."
+      "description": "Deprecated and will be permanently removed! Use 'Working Directory' in the Git repository settings instead.",
+      "readOnly": true
     },
     "deploymentScope": {
       "type": "string",
       "title": "Deployment Scope", 
-      "description": "The scope at which to deploy the Bicep template:\n- 'Subscription': Deploy at subscription level (subscription ID retrieved from selected Cloud Connector)\n- 'Resource Group': Deploy at resource group level (resource group name must be provided via ARM_RESOURCE_GROUP environment variable in workflow settings)",
+      "description": "The scope at which to deploy the Bicep template:\n- 'Subscription': Deploy at subscription level (subscription ID retrieved from selected Cloud Connector)\n- 'Resource Group': Deploy at resource group level (resource group name must be provided via ARM_RESOURCE_GROUP environment variable in workflow settings).",
       "enumNames": ["Subscription", "Resource Group"],
       "enum": ["sub", "group"]
     },
@@ -34,8 +35,8 @@
     "additionalParameters": {
       "type": "string",
       "title": "Additional Parameters",
-      "description": "Additional parameters to append to the az deployment command. For example: '--debug'"
+      "description": "Additional parameters to append to the az deployment command. For example: '--debug'."
     }
   },
-  "required": ["templateFile", "deploymentScope"]
+  "required": ["deploymentScope"]
 }
