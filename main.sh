@@ -36,7 +36,8 @@ print_cmd() {
 }
 
 parse_variables() {
-  workingDir="${LOCAL_IAC_SOURCE_CODE_DIR}"
+  # templateFile refers to the Azure Bicep template file
+  templateFile="${LOCAL_IAC_SOURCE_CODE_DIR%/}"
   workflowStepInputParams=$(echo "${BASE64_WORKFLOW_STEP_INPUT_VARIABLES}" | base64 -d -i -)
   mountedArtifactsDir="${LOCAL_ARTIFACTS_DIR}"
   # BASE64_IAC_INPUT_VARIABLES
@@ -140,13 +141,18 @@ retrieve_deployment_outputs() {
   # Store the modified output in the outputs file
   echo $outputs
   echo "$outputs" >"$outputsFile"
-  debug "Successfully stored deployment outputs in ${outputsFile}"
+
+  if [[ $? -ne 0 ]]; then
+    debug "Failed to store outputs to '$outputsFile'."
+  else
+    debug "Successfully stored deployment outputs in '${outputsFile}'."
+  fi
 
   # Get deployment resources and store them in sg.workflow_run_facts.json under BicepResources
   process_json_part "$resources" "BicepResources"
 
   # # Get deployment properties and store them in sg.workflow_run_facts.json under BicepProperties
-  # TODO: Review 
+  # TODO: Review
   # properties=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties' -o json)
   # process_json_part "$properties" "BicepProperties"
 }
@@ -157,7 +163,6 @@ main() {
   parse_variables
 
   # Extract parameters from input JSON
-  templateFile=$(echo "${workflowStepInputParams}" | jq -r '.templateFile')
   deploymentScope=$(echo "${workflowStepInputParams}" | jq -r '.deploymentScope')
   resourceGroup=${ARM_RESOURCE_GROUP}
   subscriptionId=${ARM_SUBSCRIPTION_ID}
@@ -167,7 +172,11 @@ main() {
   additionalParameters=$(echo "${workflowStepInputParams}" | jq -r '.additionalParameters')
 
   # Validate required parameters
-  [[ -z "${templateFile}" ]] && err "Template file is not passed in the Workflow Step inputs."
+  if [[ -d "${templateFile}" ]]; then
+    err "The specified template path '${templateFile}' is a directory. Please specify the Bicep file within the Working Directory configuration of the template or Git Repository as the support for the Template File parameter is removed. This might have worked with an older version of the Bicep workflow step template."
+  elif [[ ! -f "${templateFile}" ]]; then
+    err "Bicep file '${templateFile}' does not exist or is not a valid file."
+  fi
   [[ -z "${resourceGroup}" ]] && [[ "${deploymentScope}" == "group" ]] && err "ARM_RESOURCE_GROUP is not passed as an environment variable in the Workflow Settings."
   [[ -z "${subscriptionId}" ]] && err "Subscription ID from the Cloud Connector cannot be read. Please make sure that the Cloud Connector is correctly passed."
 
@@ -190,9 +199,9 @@ main() {
   if [[ "${deploymentMode}" == "What-if" ]]; then
     info "Previewing deployment with what-if"
     if [[ "${deploymentScope}" == "sub" ]]; then
-      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${workingDir}/${templateFile}"
+      whatIfCmdBase="az deployment sub what-if --location ${location} --template-file ${templateFile}"
     else
-      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${workingDir}/${templateFile}"
+      whatIfCmdBase="az deployment group what-if --resource-group ${resourceGroup} --template-file ${templateFile}"
     fi
     whatIfcmd=$(build_az_command "${whatIfCmdBase}")
     print_cmd "${whatIfcmd}"
@@ -203,9 +212,9 @@ main() {
   # Execute the deployment
   info "Starting deployment"
   if [[ "${deploymentScope}" == "sub" ]]; then
-    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${workingDir}/${templateFile}"
+    deployCmdBase="az deployment sub create --name ${deploymentName} --location ${location} --template-file ${templateFile}"
   else
-    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${workingDir}/${templateFile} --mode ${deploymentMode}"
+    deployCmdBase="az deployment group create --name ${deploymentName} --resource-group ${resourceGroup} --template-file ${templateFile} --mode ${deploymentMode}"
   fi
   cmd=$(build_az_command "${deployCmdBase}")
   # Print and execute the command

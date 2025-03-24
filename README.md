@@ -24,10 +24,7 @@ The **Bicep Workflow Step** allows users to define their Azure deployment throug
 
 ### 1. **Template File (`templateFile`)**
 
-   - **Description**: The file path to the Bicep template that defines the Azure infrastructure. This path will be appended to the workingDir defined in the VCS Config of the workflow.
-   - **Type**: String
-   - **Required**: Yes
-   - **Example**: `"main.bicep"`
+   - **Description**: Bicep Template File field is deprecated and will be permanently removed! Please specify the Bicep file path in the 'Working Directory' configuration of the template or Git Repository instead.
 
 ### 2. **Deployment Scope (`deploymentScope`)**
 
@@ -115,8 +112,8 @@ To create a workflow using this step, you can use the StackGuardian Workflow as 
           "ref": "main",
           "gitCoreAutoCRLF": false,
           "auth": "/integrations/github_com",
-          "workingDir": "",
-          "repo": "https://github.com/example/example-repo",
+          "workingDir": "main.bicep",
+          "repo": "https://github.com/example/storageaccount",
           "isPrivate": true
         }
       }
@@ -148,7 +145,6 @@ To create a workflow using this step, you can use the StackGuardian Workflow as 
           "deploymentMode": "Incremental",
           "location": "westeurope",
           "deploymentName": "storage-deployment",
-          "templateFile": "storageaccount.bicep",
           "deploymentScope": "group",
           "subscriptionId": "example-subscription"
         }
