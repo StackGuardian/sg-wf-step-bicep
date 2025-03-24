@@ -115,7 +115,7 @@ process_json_part() {
   # Update JSON file with new key-value pair
   if jq --arg key "$jsonKey" --argjson newValue "$jsonOutput" '.[$key] = $newValue' "$filePath" >"${filePath}.tmp"; then
     mv "${filePath}.tmp" "$filePath"
-    echo "Successfully stored JSON under '${jsonKey}' in sg.workflow_run_facts.json"
+    debug "Successfully stored JSON under '${jsonKey}' in sg.workflow_run_facts.json"
   else
     debug "Error: Failed to update JSON file."
     rm -f "${filePath}.tmp"
