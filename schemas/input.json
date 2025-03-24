@@ -5,22 +5,32 @@
   "properties": {
     "templateFile": {
       "type": "string",
-      "title": "Bicep Template File", 
+      "title": "Bicep Template File",
       "description": "Deprecated and will be permanently removed! Use 'Working Directory' in the Git repository settings instead.",
       "readOnly": true
     },
     "deploymentScope": {
       "type": "string",
-      "title": "Deployment Scope", 
+      "title": "Deployment Scope",
       "description": "The scope at which to deploy the Bicep template:\n- 'Subscription': Deploy at subscription level (subscription ID retrieved from selected Cloud Connector)\n- 'Resource Group': Deploy at resource group level (resource group name must be provided via ARM_RESOURCE_GROUP environment variable in workflow settings).",
-      "enumNames": ["Subscription", "Resource Group"],
-      "enum": ["sub", "group"]
+      "enumNames": [
+        "Subscription",
+        "Resource Group"
+      ],
+      "enum": [
+        "sub",
+        "group"
+      ]
     },
     "deploymentMode": {
       "type": "string",
       "title": "Deployment Mode",
       "description": "Specifies how resources should be deployed (required only when Deployment Scope is Resource Group):\n- 'Incremental': Only new or modified resources will be deployed.\n- 'Complete': Existing resources not in the template will be deleted.\n- 'What-if': Simulates the deployment without making changes.",
-      "enum": ["Incremental", "Complete", "What-if"]
+      "enum": [
+        "Incremental",
+        "Complete",
+        "What-if"
+      ]
     },
     "location": {
       "type": "string",
@@ -38,5 +48,7 @@
       "description": "Additional parameters to append to the az deployment command. For example: '--debug'."
     }
   },
-  "required": ["deploymentScope"]
+  "required": [
+    "deploymentScope"
+  ]
 }
