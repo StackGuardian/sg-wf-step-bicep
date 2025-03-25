@@ -137,10 +137,17 @@ retrieve_deployment_outputs() {
   debug "Retrieving deployment outputs"
   if [[ "${deploymentScope}" == "sub" ]]; then
     outputs=$(az deployment sub show --name "$deploymentName" --query 'properties.outputs' -o json)
+    if [[ $? -ne 0 ]]; then
+      err "Error: Failed to retrieve group deployment outputs. Ensure the deployment name ('$deploymentName') is correctly specified in the Workflow Step input and that the resource group ('$resourceGroup') is set correctly in the ARM_RESOURCE_GROUP environmental variable."
+    fi
     resourceIds=$(az deployment sub show \
       --name "$deploymentName" \
       --query 'properties.outputResources[].id' \
       -o tsv)
+
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get sub deployment resources. Check for a valid deployment name in the Workflow Step inputs: '$deploymentName'"
+    fi
 
     # Ensure resourceIds is not empty
     if [[ -z "$resourceIds" ]]; then
@@ -156,15 +163,21 @@ retrieve_deployment_outputs() {
         resources=$(jq --argjson data "$resource_data" '. += [$data]' <<<"$resources")
       done <<<"$resourceIds"
     fi
-  fi
-  if [[ "${deploymentScope}" == "group" ]]; then
+  elif [[ "${deploymentScope}" == "group" ]]; then
     outputs=$(az deployment group show --resource-group "$resourceGroup" --name "$deploymentName" --query 'properties.outputs' -o json)
+    if [[ $? -ne 0 ]]; then
+      err "Error: Failed to retrieve group deployment outputs. Ensure the deployment name ('$deploymentName') is correctly specified in the Workflow Step input and that the resource group ('$resourceGroup') is set correctly in the ARM_RESOURCE_GROUP environmental variable."
+    fi
     resourceIds=$(az deployment group show \
       --resource-group "$resourceGroup" \
       --name "$deploymentName" \
       --query 'properties.outputResources[].id' \
       -o tsv)
 
+    if [[ $? -ne 0 ]]; then
+      err "Failed to get sub deployment resources. Check for a valid deployment name in the Workflow Step inputs: '$deploymentName'"
+    fi
+
     # Ensure resourceIds is not empty
     if [[ -z "$resourceIds" ]]; then
       debug "No resources found in deployment $deploymentName."
@@ -179,6 +192,8 @@ retrieve_deployment_outputs() {
         resources=$(jq --argjson data "$resource_data" '. += [$data]' <<<"$resources")
       done <<<"$resourceIds"
     fi
+  else
+    err "Invalid Deployment Scope in the Workflow Step inputs: '$deploymentScope'. Scope must be either 'sub' or 'group'."
   fi
 
   # Store the modified output in the outputs file
