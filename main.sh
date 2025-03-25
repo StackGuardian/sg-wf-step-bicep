@@ -54,13 +54,14 @@ azure_login() {
   fi
 
   # Log in to Azure using a service principal
-  az login --service-principal -u "${ARM_CLIENT_ID}" -p "${ARM_CLIENT_SECRET}" --tenant "${ARM_TENANT_ID}" &>/dev/null
-  if [[ $? -ne 0 ]]; then
+  if ! az login --service-principal -u "${ARM_CLIENT_ID}" -p "${ARM_CLIENT_SECRET}" --tenant "${ARM_TENANT_ID}" >/dev/null 2>&1; then
     err "Failed to authenticate with Azure. Please check your Cloud Connector configuration."
   fi
 
   # Set the Azure subscription context
-  az account set --subscription "${ARM_SUBSCRIPTION_ID}" &>/dev/null
+  if ! az account set --subscription "${ARM_SUBSCRIPTION_ID}" &>/dev/null; then
+    err "Failed to set Azure subscription to '${ARM_SUBSCRIPTION_ID}'. Please verify the subscription ID in your Cloud Connector configuration."
+  fi
 }
 
 # # Function to create a resource group if it doesn't exist
