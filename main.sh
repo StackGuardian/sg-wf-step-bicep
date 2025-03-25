@@ -55,17 +55,17 @@ azure_login() {
 
   # Log in to Azure using a service principal
   if ! login_output=$(az login --service-principal -u "${ARM_CLIENT_ID}" -p "${ARM_CLIENT_SECRET}" --tenant "${ARM_TENANT_ID}" 2>&1); then
-    err "Azure authentication failed. Verify your Cloud Connector configuration. 
-    Debug Info: 
-      - ARM_CLIENT_ID: '${ARM_CLIENT_ID}' 
-      - ARM_TENANT_ID: '${ARM_TENANT_ID}' 
-    Possible Issues: Incorrect credentials, insufficient permissions, or Azure CLI misconfiguration. 
+    err "Azure login failed. Please verify your Cloud Connector configuration. 
+      - ARM_CLIENT_ID: '${ARM_CLIENT_ID}'
+      - ARM_TENANT_ID: '${ARM_TENANT_ID}'
     Azure CLI Error: ${login_output}"
   fi
 
   # Set the Azure subscription context
   if ! set_output=$(az account set --subscription "${ARM_SUBSCRIPTION_ID}" 2>&1); then
-    err "Failed to set Azure subscription to '${ARM_SUBSCRIPTION_ID}'. Please verify the subscription ID in your Cloud Connector configuration. Azure CLI Error: ${set_output}"
+    err "Failed to set Azure subscription to '${ARM_SUBSCRIPTION_ID}'.
+    Please verify the subscription ID in your Cloud Connector configuration.
+    Azure CLI Error: ${set_output}"
   fi
 }
 
